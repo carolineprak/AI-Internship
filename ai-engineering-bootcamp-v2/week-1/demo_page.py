@@ -4,6 +4,8 @@ Run this page:
   streamlit run demo_page.py
 """
 
+from __future__ import annotations
+
 import json
 
 import httpx
