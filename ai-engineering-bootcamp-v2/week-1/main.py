@@ -7,6 +7,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import RedirectResponse
 from openai import OpenAI
 from pydantic import BaseModel, Field, ValidationError
 
@@ -115,6 +116,12 @@ def call_model_unsafe(question: str, model: str) -> tuple[Answer, int, int, int]
     prompt_tokens = usage.prompt_tokens if usage else 0
     completion_tokens = usage.completion_tokens if usage else 0
     return answer, total, prompt_tokens, completion_tokens
+
+
+@app.get("/")
+def root() -> RedirectResponse:
+    """Send browsers to the interactive API docs."""
+    return RedirectResponse(url="/docs")
 
 
 @app.post("/ask")
