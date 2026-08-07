@@ -1,5 +1,7 @@
 """Week 1 live demo — five stages in one file, built up live in class."""
 
+from __future__ import annotations
+
 import time
 from pathlib import Path
 

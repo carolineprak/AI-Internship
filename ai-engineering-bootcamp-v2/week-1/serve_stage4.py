@@ -3,6 +3,8 @@
 Run: uvicorn serve_stage4:app --port 8000 --reload
 """
 
+from __future__ import annotations
+
 import time
 from pathlib import Path
 
