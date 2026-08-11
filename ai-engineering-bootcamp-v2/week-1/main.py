@@ -11,6 +11,8 @@ from fastapi.responses import RedirectResponse
 from openai import OpenAI
 from pydantic import BaseModel, Field, ValidationError
 
+from vector_store import ingest_text, qdrant_healthcheck, retrieve
+
 # Load .env from this folder so the key is found regardless of shell working directory.
 _ENV_PATH = Path(__file__).resolve().parent / ".env"
 load_dotenv(_ENV_PATH)
@@ -54,6 +56,20 @@ class AskResponse(BaseModel):
     model: str
     latency_ms: int
     cost_usd: float
+
+
+class IngestRequest(BaseModel):
+    """Body for POST /ingest — plain text plus a stable document id."""
+
+    text: str
+    document_id: str = Field(min_length=1)
+    source: str | None = None  # optional filename / source label
+
+
+class IngestResponse(BaseModel):
+    document_id: str
+    chunks_indexed: int
+    status: str
 
 
 def compute_cost_usd(model: str, prompt_tokens: int, completion_tokens: int) -> float:
@@ -122,6 +138,73 @@ def call_model_unsafe(question: str, model: str) -> tuple[Answer, int, int, int]
 def root() -> RedirectResponse:
     """Send browsers to the interactive API docs."""
     return RedirectResponse(url="/docs")
+
+
+@app.get("/debug/qdrant")
+def debug_qdrant() -> dict:
+    """Confirm Qdrant Cloud is reachable (no secrets returned)."""
+    try:
+        return qdrant_healthcheck()
+    except Exception as exc:  # noqa: BLE001 - surface config/connectivity errors to the caller
+        raise HTTPException(status_code=503, detail=f"Qdrant health check failed: {exc}") from exc
+
+
+@app.get("/debug/retrieve")
+def debug_retrieve(q: str, k: int = 5) -> dict:
+    """Embed q and return top-k chunks with scores — no LLM call.
+
+    Example:
+      curl -s 'http://127.0.0.1:8000/debug/retrieve?q=remote%20work%20policy'
+    """
+    question = (q or "").strip()
+    if not question:
+        raise HTTPException(status_code=400, detail="q must not be empty")
+    if k < 1 or k > 20:
+        raise HTTPException(status_code=400, detail="k must be between 1 and 20")
+
+    try:
+        hits = retrieve(question, top_k=k, openai_client=client)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=502, detail=f"Retrieve failed: {exc}") from exc
+
+    return {
+        "query": question,
+        "top_k": k,
+        "hits": hits,
+    }
+
+
+@app.post("/ingest")
+def ingest(body: IngestRequest) -> IngestResponse:
+    """Chunk, embed, and upsert a document into Qdrant Cloud.
+
+    Example:
+      curl -s -X POST http://127.0.0.1:8000/ingest \\
+        -H "Content-Type: application/json" \\
+        -d '{"text": "Remote work: up to 3 days per week with manager approval.", "document_id": "handbook", "source": "handbook.txt"}'
+    """
+    text = (body.text or "").strip()
+    document_id = (body.document_id or "").strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="text must not be empty")
+    if not document_id:
+        raise HTTPException(status_code=400, detail="document_id must not be empty")
+
+    try:
+        result = ingest_text(
+            text=text,
+            document_id=document_id,
+            source=body.source,
+            openai_client=client,
+        )
+    except Exception as exc:  # noqa: BLE001 - return a clear API error
+        raise HTTPException(status_code=502, detail=f"Ingest failed: {exc}") from exc
+
+    return IngestResponse(
+        document_id=result["document_id"],
+        chunks_indexed=result["chunks_indexed"],
+        status=result["status"],
+    )
 
 
 @app.post("/ask")
