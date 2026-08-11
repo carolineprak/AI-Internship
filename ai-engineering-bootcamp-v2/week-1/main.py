@@ -11,7 +11,7 @@ from fastapi.responses import RedirectResponse
 from openai import OpenAI
 from pydantic import BaseModel, Field, ValidationError
 
-from vector_store import ingest_text, qdrant_healthcheck, retrieve
+from vector_store import delete_document_chunks, ingest_text, qdrant_healthcheck, retrieve
 
 # Load .env from this folder so the key is found regardless of shell working directory.
 _ENV_PATH = Path(__file__).resolve().parent / ".env"
@@ -46,6 +46,7 @@ class AskRequest(BaseModel):
     question: str
     force_bad: bool = False  # Stage 3 demo knob — first attempt breaks schema on purpose.
     model: str | None = None  # Stage 4 — optional override to swap models live.
+    top_k: int = Field(default=5, ge=1, le=20)  # Session 2 RAG — retrieval depth
 
 
 class AskResponse(BaseModel):
@@ -56,6 +57,61 @@ class AskResponse(BaseModel):
     model: str
     latency_ms: int
     cost_usd: float
+    retrieved_chunk_ids: list[str] = Field(default_factory=list)
+
+
+RAG_GROUNDING_PROMPT = """Answer using ONLY the context below.
+If the context does not contain the answer, say:
+"I don't have enough information to answer that."
+Cite the document_id of each chunk you used.
+
+Context:
+{retrieved_chunks}
+
+Question: {question}
+"""
+
+
+def format_retrieved_context(hits: list[dict]) -> str:
+    """Render retrieved chunks for the grounding prompt."""
+    if not hits:
+        return "(No retrieved context.)"
+
+    blocks: list[str] = []
+    for i, hit in enumerate(hits, start=1):
+        doc_id = hit.get("document_id") or "unknown"
+        chunk_index = hit.get("chunk_index")
+        point_id = hit.get("point_id") or ""
+        score = hit.get("score")
+        text = (hit.get("text") or "").strip()
+        score_s = f"{score:.4f}" if isinstance(score, (int, float)) else "n/a"
+        blocks.append(
+            f"[chunk {i} | document_id={doc_id} | chunk_index={chunk_index} "
+            f"| point_id={point_id} | score={score_s}]\n{text}"
+        )
+    return "\n\n".join(blocks)
+
+
+def build_grounding_prompt(question: str, hits: list[dict]) -> str:
+    """Build the RAG user prompt: answer only from context, cite, or refuse."""
+    return RAG_GROUNDING_PROMPT.format(
+        retrieved_chunks=format_retrieved_context(hits),
+        question=question.strip(),
+    )
+
+
+def retrieved_chunk_ids_from_hits(hits: list[dict]) -> list[str]:
+    """Stable chunk IDs for the API response (prefer Qdrant point_id)."""
+    ids: list[str] = []
+    for hit in hits:
+        point_id = hit.get("point_id")
+        if point_id:
+            ids.append(str(point_id))
+            continue
+        doc_id = hit.get("document_id") or "unknown"
+        chunk_index = hit.get("chunk_index")
+        ids.append(f"{doc_id}:{chunk_index}")
+    return ids
 
 
 class IngestRequest(BaseModel):
@@ -207,27 +263,51 @@ def ingest(body: IngestRequest) -> IngestResponse:
     )
 
 
+@app.delete("/ingest/{document_id}")
+def delete_ingest(document_id: str) -> dict:
+    """Remove all chunks for a document_id (cleanup competing test docs)."""
+    doc_id = (document_id or "").strip()
+    if not doc_id:
+        raise HTTPException(status_code=400, detail="document_id must not be empty")
+    try:
+        delete_document_chunks(doc_id)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=502, detail=f"Delete failed: {exc}") from exc
+    return {"document_id": doc_id, "status": "deleted"}
+
+
 @app.post("/ask")
 def ask(body: AskRequest) -> AskResponse:
-    """Answer one question with structured output, guardrails, and cost visibility."""
+    """RAG ask: retrieve top-k chunks, ground the prompt, then Session 1 generation."""
+
+    question = (body.question or "").strip()
+    if not question:
+        raise HTTPException(status_code=400, detail="question must not be empty")
 
     model = body.model or DEFAULT_MODEL
     last_error: str | None = None
+    start = time.perf_counter()
+
+    try:
+        hits = retrieve(question, top_k=body.top_k, openai_client=client)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=502, detail=f"Retrieve failed: {exc}") from exc
+
+    chunk_ids = retrieved_chunk_ids_from_hits(hits)
+    grounded_prompt = build_grounding_prompt(question, hits)
 
     # Stage 3: one retry keeps the logic legible while still protecting callers.
     for attempt in range(2):
         try:
-            start = time.perf_counter()
-
             # First attempt with force_bad uses the unsafe path; retry uses structured output.
             use_bad_path = body.force_bad and attempt == 0
             if use_bad_path:
                 answer, tokens_used, prompt_tokens, completion_tokens = call_model_unsafe(
-                    body.question, model
+                    grounded_prompt, model
                 )
             else:
                 answer, tokens_used, prompt_tokens, completion_tokens = call_model_structured(
-                    body.question, model
+                    grounded_prompt, model
                 )
 
             latency_ms = int((time.perf_counter() - start) * 1000)
@@ -239,6 +319,7 @@ def ask(body: AskRequest) -> AskResponse:
                 model=model,
                 latency_ms=latency_ms,
                 cost_usd=round(cost_usd, 6),
+                retrieved_chunk_ids=chunk_ids,
             )
         except (ValidationError, ValueError) as exc:
             last_error = str(exc)

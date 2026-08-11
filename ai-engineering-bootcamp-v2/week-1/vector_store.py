@@ -36,8 +36,8 @@ def get_collection_name() -> str:
 
 
 def get_chunk_settings() -> tuple[int, int]:
-    """Chunk size/overlap from env (defaults ~800 / ~100)."""
-    chunk_size = int(os.getenv("CHUNK_SIZE") or "800")
+    """Chunk size/overlap from env (defaults tuned for policy-style docs)."""
+    chunk_size = int(os.getenv("CHUNK_SIZE") or "600")
     chunk_overlap = int(os.getenv("CHUNK_OVERLAP") or "100")
     if chunk_size < 1:
         raise ValueError("CHUNK_SIZE must be >= 1")
@@ -102,12 +102,115 @@ def ensure_collection(client: QdrantClient | None = None, collection: str | None
     return name
 
 
+_SECTION_BANNER = "=============================================================================="
+
+
+def _split_handbook_sections(text: str) -> list[tuple[str, str]]:
+    """
+    Split POL-style docs on ==== banners into (section_title, body) pairs.
+
+    Title is the non-empty line immediately before a banner (e.g. "4. REMOTE WORK...").
+    Content before the first banner is kept as ("", preamble).
+    """
+    lines = text.splitlines()
+    sections: list[tuple[str, str]] = []
+    preamble: list[str] = []
+    title = ""
+    body: list[str] = []
+    i = 0
+    saw_banner = False
+
+    while i < len(lines):
+        line = lines[i]
+        if line.strip() == _SECTION_BANNER:
+            saw_banner = True
+            # Flush anything accumulated before this banner as preamble/previous body.
+            if body or (not sections and preamble):
+                blob = "\n".join(preamble + body).strip() if not sections else "\n".join(body).strip()
+                if not sections and preamble and not body:
+                    blob = "\n".join(preamble).strip()
+                if blob:
+                    sections.append((title, blob))
+                preamble = []
+                body = []
+
+            # Title is the last non-empty line before this banner (already in body or prev).
+            # Pattern in Northwind: TITLE\n====\nBODY...\n====  OR  ====\nTITLE\n====\nBODY
+            # Prefer title between two banners: skip opening banner, next non-empty = title,
+            # then optional closing banner, then body until next banner.
+            i += 1
+            while i < len(lines) and not lines[i].strip():
+                i += 1
+            if i < len(lines) and lines[i].strip() != _SECTION_BANNER:
+                title = lines[i].strip()
+                i += 1
+            # Optional second banner under the title
+            while i < len(lines) and not lines[i].strip():
+                i += 1
+            if i < len(lines) and lines[i].strip() == _SECTION_BANNER:
+                i += 1
+            body = []
+            while i < len(lines) and lines[i].strip() != _SECTION_BANNER:
+                body.append(lines[i])
+                i += 1
+            blob = "\n".join(body).strip()
+            if blob or title:
+                sections.append((title, blob))
+            title = ""
+            body = []
+            continue
+
+        if not saw_banner:
+            preamble.append(line)
+        else:
+            body.append(line)
+        i += 1
+
+    if not saw_banner:
+        blob = text.strip()
+        return [("", blob)] if blob else []
+
+    trailing = "\n".join(body).strip()
+    if trailing:
+        sections.append((title, trailing))
+    return [(t, b) for t, b in sections if b.strip()]
+
+
 def chunk_text(text: str) -> list[str]:
+    """
+    Section-aware chunking for policy handbooks.
+
+    Prefer splitting on ==== section banners, then size-split within a section
+    while prepending the section title to each chunk so embeddings keep topic context.
+    Falls back to recursive character splitting for plain text.
+    """
     chunk_size, chunk_overlap = get_chunk_settings()
+    within_section = RecursiveCharacterTextSplitter(
+        chunk_size=max(200, chunk_size - 80),  # leave room for title prefix
+        chunk_overlap=chunk_overlap,
+        separators=["\n\n", "\n", ". ", " ", ""],
+    )
+
+    if _SECTION_BANNER in text:
+        chunks: list[str] = []
+        for title, body in _split_handbook_sections(text):
+            prefix = f"{title}\n\n" if title else ""
+            # If whole section fits, keep it as one chunk (best for leave / remote answers).
+            candidate = f"{prefix}{body}".strip()
+            if len(candidate) <= chunk_size:
+                chunks.append(candidate)
+                continue
+            for piece in within_section.split_text(body):
+                piece = piece.strip()
+                if not piece:
+                    continue
+                chunks.append(f"{prefix}{piece}".strip() if prefix else piece)
+        return chunks
+
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
-        separators=["\n\n", "\n", ". ", " ", ""],
+        separators=["\n\n\n", "\n\n", "\n", ". ", " ", ""],
     )
     return [c.strip() for c in splitter.split_text(text) if c.strip()]
 

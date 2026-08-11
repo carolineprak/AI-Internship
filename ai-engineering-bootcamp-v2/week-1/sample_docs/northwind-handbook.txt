@@ -1,0 +1,318 @@
+Northwind Robotics Employee Handbook
+Author: People Operations Team
+Document ID: POL-101
+Version: 3.2
+Effective date: 1 March 2026
+Last review: 12 February 2026
+Next review: 12 August 2026
+Classification: Internal - All Employees
+Owner: Chief People Officer
+Approver: CEO
+
+==============================================================================
+1. PURPOSE AND SCOPE
+==============================================================================
+
+This handbook is the authoritative source for employment terms, workplace
+norms, and people policies at Northwind Robotics Ltd ("Northwind", "the
+Company"). It applies to all permanent employees, fixed-term contractors
+engaged for six months or longer, and seconded staff working under
+Northwind management.
+
+Where this handbook conflicts with a signed employment contract, the
+contract prevails for that individual. Where this handbook conflicts with
+local law in a jurisdiction where Northwind operates, local law prevails.
+Managers may not create team-level exceptions that weaken a company policy
+without written approval from People Operations.
+
+This document does not create a collective agreement. Policies may be
+updated with notice on the company intranet; material changes that affect
+pay or contractual leave are communicated by email with at least 30 days'
+notice unless a shorter period is required by law.
+
+==============================================================================
+2. OUR COMPANY AND VALUES
+==============================================================================
+
+Northwind Robotics designs, manufactures, and supports autonomous mobile
+robots for warehouse and light industrial environments. Our headquarters
+are in Cambridge, UK, with satellite offices in Berlin, Austin, and
+Singapore, plus remote employees across the UK, EU, and North America.
+
+Company values (used in hiring, performance, and promotion decisions):
+
+  Safety first. Robots and people share floors. Shortcuts that risk injury
+  or unsafe deployments are never rewarded.
+
+  Customer truth. We prefer an honest delayed ship date over a surprise
+  failure in a customer's aisle.
+
+  Own the outcome. Roles are not fences. If you see a broken process, you
+  either fix it or escalate with a proposed fix.
+
+  Teach what you learn. Documentation and demos are part of the job, not
+  optional polish.
+
+==============================================================================
+3. WORKING HOURS
+==============================================================================
+
+Working hours are 09:00 to 17:30, Monday to Friday.
+
+The standard full-time week is 37.5 hours excluding a 30-minute unpaid
+lunch break. Part-time schedules are agreed in writing and stored in the
+HRIS. Overtime is not routinely expected for salaried roles; when a
+deadline requires evening or weekend work, managers must record the hours
+and offer time off in lieu within the following calendar month.
+
+Core collaboration hours for cross-office meetings are 10:00 to 15:00 UK
+time. Teams should avoid scheduling mandatory meetings outside that window
+unless a customer incident or launch requires it.
+
+Flexible start times between 08:00 and 10:00 are allowed if the employee
+still covers core collaboration hours and their manager agrees in writing.
+Flex arrangements are reviewed each quarter.
+
+==============================================================================
+4. REMOTE WORK AND HYBRID WORK
+==============================================================================
+
+Remote work. Employees may work remotely up to three days per week.
+Fully remote arrangements require director approval and are reviewed
+every six months. Employees working remotely must be reachable on
+Slack during core hours, which are 10:00 to 15:00.
+
+Hybrid default. Most UK and EU roles are hybrid: at least two days per
+week in a Northwind office or an approved customer site when the role
+requires it. The two in-office days are chosen with the manager so that
+team overlap is maximised (typically Tuesday and Thursday at Cambridge).
+
+Desk booking. Cambridge and Berlin use hot desks. Book a desk by 17:00
+the day before via the Workplace app. Unbooked desks may be released at
+09:30. Austin and Singapore keep assigned desks for manufacturing and
+field-support staff.
+
+Home office standards. Remote and hybrid employees must have a private
+space for confidential calls, a reliable internet connection of at least
+50 Mbps down / 10 Mbps up, and an ergonomic setup that meets the Display
+Screen Equipment checklist. Northwind reimburses up to £350 (or local
+equivalent) once every 36 months for approved home office equipment.
+Claims go through the expenses policy (see POL-114).
+
+International remote work. Working from a country that is not the
+employee's contracted work location for more than 10 working days in a
+rolling 90-day period requires approval from People Operations and Tax.
+Unapproved long stays can create permanent establishment and payroll
+risks for the Company.
+
+Customer sites. Field engineers and deployment specialists follow the
+customer site access rules in SPEC-WB9 and the Security Policy (POL-207).
+Customer-site days count as in-office days for hybrid tracking.
+
+==============================================================================
+5. TIME OFF AND LEAVE
+==============================================================================
+
+Annual leave is 28 days plus public holidays.
+
+Leave year runs from 1 January to 31 December. New joiners accrue leave
+monthly in their first year. Up to five unused days may be carried into
+the next leave year with manager approval; carried days expire on 31 March.
+Payment in lieu of untaken leave is only made on termination as required
+by law.
+
+Booking leave. Submit requests in the HRIS at least 10 working days in
+advance for absences of three or more consecutive days. Peak blackout
+periods (for example final week of a major customer go-live) are published
+by team leads each quarter. Managers must respond to leave requests within
+five working days.
+
+Sick leave. Notify your manager and People Operations before 09:30 on the
+first day of absence. Self-certification covers the first seven calendar
+days. After seven days, a doctor's note is required. Northwind provides
+company sick pay above statutory minimums as described in the benefits
+summary on the intranet; details vary by country entity.
+
+Compassionate leave. Up to five paid days for the death of an immediate
+family member. Additional unpaid leave may be agreed with People Operations.
+
+Jury service and civic duties. Northwind supports employees summoned for
+jury service. Notify People Operations immediately and provide the court
+summons. Pay continuation follows local statutory rules plus company top-up
+where applicable.
+
+Study leave. Employees enrolled in an approved professional qualification
+may request up to five paid study days per year, subject to manager and
+People Operations approval. Course fees may be supported under the Learning
+and Development budget (see Section 11).
+
+==============================================================================
+6. PAY, EXPENSES, AND TRAVEL
+==============================================================================
+
+Salary is paid monthly in arrears on the last working day of each month
+(UK payroll) or per local entity calendar. Payslips are available in the
+HRIS. Questions about tax codes or deductions go to payroll@northwind.example.
+
+Expenses and travel reimbursement are governed by the Expenses Policy
+(Document ID: POL-114). That policy is authoritative for mileage rates,
+meal caps, receipt rules, and submission deadlines. This handbook does not
+override POL-114.
+
+Company credit cards are issued to roles that travel monthly. Cardholders
+must reconcile transactions within 14 days. Personal spend on a company
+card is a disciplinary matter.
+
+==============================================================================
+7. CONDUCT, CONFLICTS, AND SPEAK-UP
+==============================================================================
+
+Expected conduct. Treat colleagues, customers, and suppliers with respect.
+Harassment, discrimination, bullying, and retaliation are prohibited.
+Northwind investigates reported concerns promptly and confidentially to the
+extent practical.
+
+Conflicts of interest. Disclose outside employment, board seats, and
+financial interests in competitors or suppliers to People Operations. Do
+not use Northwind confidential information for personal gain.
+
+Gifts and hospitality. Accepting gifts over £50 (or local equivalent)
+requires manager approval and a register entry. Cash gifts are never
+acceptable. Customer entertainment must comply with anti-bribery rules.
+
+Speak-up channels. Raise concerns with your manager, People Operations,
+or anonymously via the ethics hotline listed on the intranet. Security
+incidents (lost laptop, suspected phishing) must also follow POL-207
+reporting timelines.
+
+Social media. Do not post confidential product, customer, or personnel
+information. Personal opinions should be clearly personal. Official
+company statements are issued only by Marketing or an authorised
+spokesperson.
+
+==============================================================================
+8. PERFORMANCE, FEEDBACK, AND PROMOTION
+==============================================================================
+
+Goal cycles run twice per year (February and August). Employees and
+managers set outcomes that are specific, measurable where practical, and
+tied to team OKRs. Mid-cycle check-ins are required; waiting for the
+formal review is not a substitute for coaching.
+
+Performance ratings use a four-point scale: Exceeds, Meets, Developing,
+and Unsatisfactory. Unsatisfactory ratings trigger a written improvement
+plan with clear milestones and a review date of no more than 90 days.
+
+Promotions. Level changes require a calibration packet (impact evidence,
+peer feedback, and manager nomination) reviewed by the relevant director
+and People Operations. Promotions are not automatic with tenure.
+
+Pipelines and PIP exits. If an improvement plan is not met, Northwind may
+proceed to termination consistent with local employment law and the
+employee's contract.
+
+==============================================================================
+9. EQUIPMENT, SYSTEMS, AND DATA
+==============================================================================
+
+Northwind issues a company laptop and identity account on day one. Personal
+devices may access email and Slack only through approved MDM or SSO paths.
+Storing customer data on personal devices is forbidden.
+
+Security baseline. Follow the Security Policy (POL-207) for passwords,
+multi-factor authentication, encryption, and incident reporting. People
+Operations will not override Security timelines.
+
+Software installs. Use the company software catalogue. Unlisted tools that
+process customer or employee personal data need a Security review before
+use. Shadow IT that stores Northwind data in personal cloud accounts is a
+policy violation.
+
+Offboarding. Return all company equipment within five working days of the
+last employment day. Access is revoked at end of last working day unless
+a shorter timeline is required for a security incident.
+
+==============================================================================
+10. HEALTH, SAFETY, AND WELLBEING
+==============================================================================
+
+Warehouse and lab areas require closed-toe shoes and adherence to local
+safety inductions. Never bypass robot safety interlocks. Report near-misses
+in the Safety app within 24 hours.
+
+Display screen assessments are mandatory in the first 30 days and after a
+role or primary workspace change. Occupational health referrals are
+available via People Operations.
+
+Mental health. Employees have access to the Employee Assistance Programme
+(confidential counselling). Managers are trained to respond to wellbeing
+concerns without diagnosing medical conditions.
+
+==============================================================================
+11. LEARNING AND DEVELOPMENT
+==============================================================================
+
+Every employee has an annual L&D allowance published by People Operations
+(amounts vary by level and entity). Allowances cover courses, books, and
+conference tickets that relate to the role. Unused allowance does not roll
+over.
+
+Internal teaching. Engineers and specialists who deliver an approved
+internal workshop of 60 minutes or longer receive recognition in the
+promotion packet and may claim preparation time against team capacity with
+manager agreement.
+
+Mandatory training. Security awareness, anti-harassment, and (for relevant
+roles) product safety modules must be completed within 30 days of joining
+and annually thereafter. Incomplete mandatory training can block system
+access renewals.
+
+==============================================================================
+12. EQUALITY, DIVERSITY, AND INCLUSION
+==============================================================================
+
+Northwind is an equal opportunity employer. Hiring, pay, and promotion
+decisions must be based on role-relevant criteria. Reasonable adjustments
+for disability are coordinated by People Operations.
+
+Pronouns and names. Use the name and pronouns an employee has recorded in
+the HRIS and Slack profile. Deadnaming or deliberate misgendering is
+misconduct.
+
+Religious observance. Managers should accommodate prayer times and
+religious holidays where operationally feasible, using annual leave or
+flexible hours as agreed.
+
+==============================================================================
+13. GRIEVANCES AND DISCIPLINE
+==============================================================================
+
+Informal resolution is preferred for minor issues. Formal grievances are
+submitted in writing to People Operations. An investigator who is not the
+subject's direct manager will be appointed. Employees may bring a companion
+to formal meetings as permitted by local law.
+
+Disciplinary processes follow a staged approach for most conduct issues:
+verbal warning, written warning, final written warning, then dismissal.
+Gross misconduct (theft, violence, serious data breach, fraud) may lead to
+summary dismissal subject to local law.
+
+Appeals. Employees may appeal a formal outcome within five working days of
+receiving the decision letter. Appeals are heard by a more senior manager
+not previously involved.
+
+==============================================================================
+14. DOCUMENT CONTROL AND RELATED POLICIES
+==============================================================================
+
+Related documents referenced by this handbook:
+
+  POL-114  Expenses Policy (Finance)
+  POL-207  Security Policy (Information Security)
+  SPEC-WB9 Warehouse Robot Product Spec (Engineering) - operational
+           constraints that affect field staff scheduling and site access
+
+Questions about this handbook: people@northwind.example
+Policy change requests: submit via the Policy Change Jira form
+
+End of POL-101
