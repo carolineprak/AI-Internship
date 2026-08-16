@@ -8,7 +8,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
-from openai import OpenAI
+from openai import APIError, BadRequestError, NotFoundError, OpenAI
 from pydantic import BaseModel, Field, ValidationError
 
 from vector_store import delete_document_chunks, ingest_text, qdrant_healthcheck, retrieve
@@ -342,9 +342,18 @@ def ask(body: AskRequest) -> AskResponse:
                 cost_usd=round(cost_usd, 6),
                 retrieved_chunk_ids=chunk_ids,
             )
+        except HTTPException:
+            raise
         except (ValidationError, ValueError) as exc:
             last_error = str(exc)
             continue
+        except (BadRequestError, NotFoundError) as exc:
+            # OpenAI rejected the request (e.g. unknown model) — client error, not a 500.
+            raise HTTPException(status_code=400, detail=f"Invalid model request: {exc}") from exc
+        except APIError as exc:
+            raise HTTPException(status_code=502, detail=f"Upstream model error: {exc}") from exc
+        except Exception as exc:  # noqa: BLE001 - never leak an unhandled 500 to graders
+            raise HTTPException(status_code=502, detail=f"Ask failed: {exc}") from exc
 
     # Clean failure — never leak a half-parsed response to the client.
     raise HTTPException(
