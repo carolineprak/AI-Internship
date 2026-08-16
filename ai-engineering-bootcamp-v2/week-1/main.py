@@ -30,6 +30,21 @@ MODEL_PRICES_PER_1K: dict[str, tuple[float, float]] = {
     "gpt-4o-mini": (0.00015, 0.0006),
     "o3-mini": (0.0011, 0.0044),
 }
+ALLOWED_MODELS = frozenset(MODEL_PRICES_PER_1K)
+
+
+def resolve_model(model: str | None) -> str:
+    """Use default when model is omitted/blank; reject unknown ids with 400."""
+    if model is None or not str(model).strip():
+        return DEFAULT_MODEL
+    chosen = str(model).strip()
+    if chosen not in ALLOWED_MODELS:
+        allowed = ", ".join(sorted(ALLOWED_MODELS))
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported model '{chosen}'. Allowed: {allowed}",
+        )
+    return chosen
 
 
 class Answer(BaseModel):
@@ -290,7 +305,7 @@ def ask(body: AskRequest) -> AskResponse:
     if not question:
         raise HTTPException(status_code=400, detail="question must not be empty")
 
-    model = body.model or DEFAULT_MODEL
+    model = resolve_model(body.model)
     last_error: str | None = None
     start = time.perf_counter()
 
