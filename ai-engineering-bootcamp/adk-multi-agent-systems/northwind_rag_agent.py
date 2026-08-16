@@ -16,8 +16,8 @@ import json
 import os
 from typing import Any
 from urllib.parse import urlencode
-from urllib.request import Request, urlopen
 
+import httpx
 from dotenv import load_dotenv
 from google.adk.agents import Agent
 from google.adk.runners import Runner
@@ -27,13 +27,26 @@ from google.genai import types
 load_dotenv()
 
 MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
-RAG_API_URL = (
-    os.getenv("RAG_API_URL")
-    or os.getenv("API_BASE_URL")
-    or "https://ai-internship-bnrf.onrender.com"
-).rstrip("/")
 MAX_AGENT_STEPS = int(os.getenv("MAX_AGENT_STEPS", "8"))
 APP_NAME = "northwind_rag_agent"
+
+
+def normalize_rag_api_url(raw: str | None) -> str:
+    """
+    Accept either the API root or a pasted /docs URL.
+
+    Correct: https://ai-internship-bnrf.onrender.com
+    Also OK: .../docs  → stripped back to the API root
+    """
+    url = (raw or "https://ai-internship-bnrf.onrender.com").strip().rstrip("/")
+    if url.endswith("/docs"):
+        url = url[: -len("/docs")].rstrip("/")
+    return url
+
+
+RAG_API_URL = normalize_rag_api_url(
+    os.getenv("RAG_API_URL") or os.getenv("API_BASE_URL")
+)
 
 
 def search_docs(query: str, top_k: int = 5) -> dict:
@@ -50,14 +63,17 @@ def search_docs(query: str, top_k: int = 5) -> dict:
     k = max(1, min(int(top_k or 5), 10))
     url = f"{RAG_API_URL}/debug/retrieve?{urlencode({'q': q, 'k': k})}"
     try:
-        req = Request(url, method="GET")
-        with urlopen(req, timeout=60) as resp:
-            payload = json.loads(resp.read().decode("utf-8"))
+        # trust_env=False avoids local HTTP(S)_PROXY tunnel 403s (common in IDE sandboxes).
+        with httpx.Client(timeout=60.0, trust_env=False) as client:
+            resp = client.get(url)
+            resp.raise_for_status()
+            payload = resp.json()
     except Exception as exc:  # noqa: BLE001 - return observation, do not crash the agent
         return {
             "ok": False,
             "error": f"retrieve failed: {exc}",
             "rag_api_url": RAG_API_URL,
+            "request_url": url,
             "hits": [],
         }
 

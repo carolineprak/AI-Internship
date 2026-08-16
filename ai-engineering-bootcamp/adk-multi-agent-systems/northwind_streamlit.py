@@ -41,10 +41,14 @@ st.caption("Google ADK · real tool: search_docs → Session 2 `/debug/retrieve`
 
 with st.sidebar:
     st.header("Config")
-    st.write(f"**RAG API:** `{RAG_API_URL}`")
+    st.write(f"**RAG API root:** `{RAG_API_URL}`")
+    st.write(f"**Docs UI:** `{RAG_API_URL}/docs`")
     st.write(f"**Model:** `{MODEL}`")
     st.write(f"**Max steps:** `{MAX_AGENT_STEPS}`")
-    st.caption("Set RAG_API_URL / GEMINI_MODEL / GOOGLE_API_KEY in `.env`.")
+    st.caption(
+        "RAG_API_URL must be the API root (no `/docs`). "
+        "Tool calls `/debug/retrieve` on that root."
+    )
 
 question = st.text_area(
     "Policy question",
