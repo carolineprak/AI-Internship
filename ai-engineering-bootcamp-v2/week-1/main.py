@@ -196,6 +196,12 @@ def root() -> RedirectResponse:
     return RedirectResponse(url="/docs")
 
 
+@app.get("/health")
+def health() -> dict:
+    """Liveness check — process is up. No external deps, no secrets."""
+    return {"status": "ok"}
+
+
 @app.get("/debug/qdrant")
 def debug_qdrant() -> dict:
     """Confirm Qdrant Cloud is reachable (no secrets returned)."""
