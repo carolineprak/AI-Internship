@@ -13,7 +13,9 @@ from google.genai import types
 
 load_dotenv()
 
-MODEL = "gemini-2.5-flash"
+# gemini-2.5-flash* is blocked for many new AI Studio keys.
+# Free tier is ~5 RPM per model — use a current model and space requests.
+MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
 
 # --- Tools ---
 
@@ -102,10 +104,13 @@ async def main():
         ("TECHNICAL", "My app keeps crashing every time I try to login. Is there an outage?"),
         ("ESCALATION", "Someone hacked my account! I see charges I didn't make. Email: jane@example.com. Urgent!"),
     ]
-    for label, query in tests:
+    max_tests = int(os.getenv("DEMO1_MAX_TESTS", "3"))
+    for label, query in tests[:max_tests]:
         print(f"\n--- {label} ---")
         print(f"User: {query}\n")
         print(f"Agent: {await ask(root_agent, query)}\n")
+        # Free-tier RPM is low; pause between multi-agent runs.
+        await asyncio.sleep(float(os.getenv("DEMO1_PAUSE_SEC", "12")))
 
 if __name__ == "__main__":
     asyncio.run(main())

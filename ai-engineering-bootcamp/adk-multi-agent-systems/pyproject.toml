@@ -13,3 +13,19 @@ dependencies = [
     "streamlit>=1.35.0",
 ]
 
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+# Demo scripts are top-level modules, not an import package — avoid setuptools autodiscovers.
+[tool.setuptools]
+py-modules = [
+    "demo1_routing",
+    "demo2_mcp",
+    "demo3_full_system",
+    "shipping_agent",
+    "streamlit_app",
+    "northwind_rag_agent",
+    "northwind_streamlit",
+]
+
