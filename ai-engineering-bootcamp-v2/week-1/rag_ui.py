@@ -103,8 +103,11 @@ with tab_ask:
             else:
                 answer_obj = body.get("answer") or {}
                 answer_text = str(answer_obj.get("answer") or "")
+                sources = body.get("sources") or []
                 chunk_ids = body.get("retrieved_chunk_ids") or []
-                is_refusal = REFUSAL_PHRASE.lower() in answer_text.lower()
+                is_refusal = bool(body.get("refused")) or (
+                    REFUSAL_PHRASE.lower() in answer_text.lower()
+                )
 
                 if is_refusal:
                     st.warning("Refusal — not enough information in retrieved context.")
@@ -119,16 +122,23 @@ with tab_ask:
                 cols[1].metric("tokens_used", body.get("tokens_used"))
                 cols[2].metric("cost_usd", body.get("cost_usd"))
 
-                st.markdown("### Citations / retrieved chunks")
-                if chunk_ids:
+                st.markdown("### Sources")
+                if sources:
+                    for src in sources:
+                        doc = src.get("document_id")
+                        cid = src.get("chunk_id")
+                        idx = src.get("chunk_index")
+                        score = src.get("score")
+                        st.code(
+                            f"document_id={doc} | chunk_index={idx} | chunk_id={cid} | score={score}",
+                            language=None,
+                        )
+                elif chunk_ids:
+                    st.caption("Fallback: retrieved_chunk_ids")
                     for cid in chunk_ids:
                         st.code(cid, language=None)
                 else:
-                    st.info("No retrieved_chunk_ids in response.")
-
-                # Highlight document_id mentions in the answer text when present
-                if "document_id" in answer_text.lower() or "doc" in answer_text.lower():
-                    st.caption("If the model cited a document_id in the answer text, it appears above.")
+                    st.info("No sources in response.")
 
                 with st.expander("Full JSON response"):
                     st.code(json.dumps(body, indent=2), language="json")

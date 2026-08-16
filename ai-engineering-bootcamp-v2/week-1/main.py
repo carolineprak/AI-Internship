@@ -55,6 +55,15 @@ class Answer(BaseModel):
     sources_needed: bool
 
 
+class CitationSource(BaseModel):
+    """One retrieved chunk available to ground the answer (stable /ask contract)."""
+
+    document_id: str
+    chunk_id: str
+    chunk_index: int | None = None
+    score: float | None = None
+
+
 class AskRequest(BaseModel):
     """Typed request body so bad input is rejected before we spend tokens."""
 
@@ -65,15 +74,26 @@ class AskRequest(BaseModel):
 
 
 class AskResponse(BaseModel):
-    """Typed response so callers always get the same shape back."""
+    """
+    Stable /ask contract for Session 2+ (and Week 3 prep).
 
+    Always present for both answers and refusals:
+      question, answer, refused, sources, retrieved_chunk_ids,
+      tokens_used, model, latency_ms, cost_usd
+    """
+
+    question: str
     answer: Answer
+    refused: bool
+    sources: list[CitationSource] = Field(default_factory=list)
     tokens_used: int
     model: str
     latency_ms: int
     cost_usd: float
     retrieved_chunk_ids: list[str] = Field(default_factory=list)
 
+
+REFUSAL_PHRASE = "I don't have enough information to answer that."
 
 RAG_GROUNDING_PROMPT = """Answer using ONLY the context below.
 If the context does not contain the answer, say:
@@ -127,6 +147,31 @@ def retrieved_chunk_ids_from_hits(hits: list[dict]) -> list[str]:
         chunk_index = hit.get("chunk_index")
         ids.append(f"{doc_id}:{chunk_index}")
     return ids
+
+
+def sources_from_hits(hits: list[dict]) -> list[CitationSource]:
+    """Structured citations from retrieved chunks (same order as retrieval)."""
+    sources: list[CitationSource] = []
+    for hit in hits:
+        doc_id = str(hit.get("document_id") or "unknown")
+        point_id = hit.get("point_id")
+        chunk_index = hit.get("chunk_index")
+        chunk_id = str(point_id) if point_id else f"{doc_id}:{chunk_index}"
+        score = hit.get("score")
+        sources.append(
+            CitationSource(
+                document_id=doc_id,
+                chunk_id=chunk_id,
+                chunk_index=int(chunk_index) if chunk_index is not None else None,
+                score=float(score) if isinstance(score, (int, float)) else None,
+            )
+        )
+    return sources
+
+
+def is_refusal_answer(answer_text: str) -> bool:
+    """True when the model used the grounded refusal phrase."""
+    return REFUSAL_PHRASE.lower() in (answer_text or "").lower()
 
 
 class IngestRequest(BaseModel):
@@ -315,6 +360,7 @@ def ask(body: AskRequest) -> AskResponse:
         raise HTTPException(status_code=502, detail=f"Retrieve failed: {exc}") from exc
 
     chunk_ids = retrieved_chunk_ids_from_hits(hits)
+    sources = sources_from_hits(hits)
     grounded_prompt = build_grounding_prompt(question, hits)
 
     # Stage 3: one retry keeps the logic legible while still protecting callers.
@@ -335,7 +381,10 @@ def ask(body: AskRequest) -> AskResponse:
             cost_usd = compute_cost_usd(model, prompt_tokens, completion_tokens)
 
             return AskResponse(
+                question=question,
                 answer=answer,
+                refused=is_refusal_answer(answer.answer),
+                sources=sources,
                 tokens_used=tokens_used,
                 model=model,
                 latency_ms=latency_ms,
